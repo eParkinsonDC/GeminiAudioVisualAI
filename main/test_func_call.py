@@ -3,8 +3,8 @@ from google.genai import types
 import os
 from dotenv import load_dotenv
 from get_files import getFiles
-from audio_gemini_model import AudioLoop
-from prompt_manager import LLangC_Prompt_Manager
+from audio_gemini_model import AudioGeminiModel
+from prompt_manager import LlangChainPromptManager
 
 # Define function declaration for `getFiles`
 load_dotenv()
@@ -27,13 +27,13 @@ get_files_function = types.FunctionDeclaration(
     ),
 )
 
-prompt_manager = LLangC_Prompt_Manager()
+prompt_manager = LlangChainPromptManager()
 prompt_manager.load_prompt_name()
 prompt_manager.get_llang_chain_access()
 # Get the prompt template as text/str
 prompt_text = prompt_manager.prompt_template
 
-gem_ai_pgm_run = AudioLoop()
+gem_ai_pgm_run = AudioGeminiModel()
 tools = [
     types.Tool(code_execution=types.ToolCodeExecution),
     types.Tool(google_search=types.GoogleSearch()),

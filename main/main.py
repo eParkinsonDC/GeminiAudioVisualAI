@@ -1,4 +1,3 @@
-# Import audio_loop relative to this directory
 import argparse
 import asyncio
 import logging
@@ -7,12 +6,12 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from .audio_gemini_model import AudioLoop
-from .prompt_manager import LLangC_Prompt_Manager
+from audio_gemini_model import AudioGeminiModel
+from prompt_manager import LlangChainPromptManager
 
 # Try importing token_tracker from project root
 try:
-    from .token_tracker import TokenTracker
+    from token_tracker import TokenTracker
 except ImportError:
     TokenTracker = None
     print("Warning: token_tracker module not found. Token tracking will be disabled.")
@@ -56,13 +55,13 @@ def main():
     )
     args = parser.parse_args()
 
-    prompt_manager = LLangC_Prompt_Manager(version=args.prompt_version)
+    prompt_manager = LlangChainPromptManager(version=args.prompt_version)
     prompt_manager.load_prompt_name()
     prompt_manager.get_llang_chain_access()
     # Get the prompt template as text/str
     prompt_text = prompt_manager.prompt_template
 
-    gem_ai_pgm_run = AudioLoop(video_mode=args.mode)
+    gem_ai_pgm_run = AudioGeminiModel(video_mode=args.mode)
 
     gem_ai_pgm_run.model_type = args.model_type
     print("-" * 50)

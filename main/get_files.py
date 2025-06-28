@@ -3,13 +3,12 @@ import logging
 from typing import List, Dict, Any, Optional
 from googleapiclient.discovery import build
 from google.oauth2.service_account import Credentials
+from config import SERVICE_ACCOUNT_FILE
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s"
 )
 logger = logging.getLogger(__name__)
-
-SERVICE_ACCOUNT_FILE = "service_account.json"  # Path to your service account key file
 
 
 class GoogleDriveFileFetcher:

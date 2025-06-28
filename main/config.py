@@ -19,3 +19,4 @@ OUTPUT_DIR = "outputs"
 OUTPUT_FILE = "output_from_ai.txt"
 
 PYA = pyaudio.PyAudio()
+SERVICE_ACCOUNT_FILE = "service_account.json"  # Path to your service account key file

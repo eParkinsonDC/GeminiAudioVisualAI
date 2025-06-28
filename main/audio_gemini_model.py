@@ -14,24 +14,26 @@ import PIL.Image
 from google import genai
 from google.genai import types
 
+# Group all main.* imports together
 try:
-    from .prompt_manager import LLangC_Prompt_Manager
-except ImportError:
-    LLangC_Prompt_Manager = None
-
-try:
-    from .token_tracker import TokenTracker
-except ImportError:
-    TokenTracker = None
-
-
-try:
-    from .get_files import getFiles
+    from get_files import getFiles
 except ImportError:
     getFiles = None
 
+
 try:
-    from .config import (
+    from prompt_manager import LlangChainPromptManager
+except ImportError:
+    LlangChainPromptManager = None
+
+
+try:
+    from token_tracker import TokenTracker
+except ImportError:
+    TokenTracker = None
+
+try:
+    from config import (
         PYA,
         FORMAT,
         CHANNELS,
@@ -42,14 +44,19 @@ try:
         CHUNK_SIZE,
     )
 except ImportError:
-    CHUNK_SIZE = PYA = FORMAT = CHANNELS = SEND_SAMPLE_RATE = RECEIVE_SAMPLE_RATE = (
-        OUTPUT_DIR
-    ) = () = None
+    PYA = None
+    FORMAT = None
+    CHANNELS = None
+    SEND_SAMPLE_RATE = None
+    RECEIVE_SAMPLE_RATE = None
+    OUTPUT_DIR = None
+    OUTPUT_FILE = None
+    CHUNK_SIZE = None
 
 
-class AudioLoop:
+class AudioGeminiModel:
     """
-    AudioLoop manages real-time audio and video interaction with
+    AudioGeminiModel  manages real-time audio and video interaction with
     a Gemini AI endpoint.
 
     This class encapsulates the setup and management of audio input/output,
@@ -163,7 +170,9 @@ class AudioLoop:
         self.session_handle = None
         self.handle_path = None
         self.latest_session_handle = self.session_handle
-        self.prompt_manager = LLangC_Prompt_Manager() if LLangC_Prompt_Manager else None
+        self.prompt_manager = (
+            LlangChainPromptManager() if LlangChainPromptManager else None
+        )
         self.token_tracker = TokenTracker() if TokenTracker else None
 
     def create_client(self):
@@ -251,28 +260,28 @@ class AudioLoop:
             types.Tool(code_execution=types.ToolCodeExecution()),
         ]
 
-        tools_ext = [
-            types.Tool(google_search=types.GoogleSearch()),
-            types.Tool(code_execution=types.ToolCodeExecution()),
-            types.Tool(
-                function_declarations=[
-                    types.FunctionDeclaration(
-                        name="getFiles",
-                        description="Searches Google Drive for files by search term name/type",
-                        parameters=types.Schema(
-                            type=types.Type.OBJECT,
-                            properties={
-                                "search_term": types.Schema(
-                                    type=types.Type.STRING,
-                                    description="Filename or file type (e.g., csv, pdf, docx, John, Report, etc.).",
-                                ),
-                            },
-                            required=["search_term"],
-                        ),
-                    ),
-                ]
-            ),
-        ]
+        # tools_ext = [
+        #     types.Tool(google_search=types.GoogleSearch()),
+        #     types.Tool(code_execution=types.ToolCodeExecution()),
+        #     types.Tool(
+        #         function_declarations=[
+        #             types.FunctionDeclaration(
+        #                 name="getFiles",
+        #                 description="Searches Google Drive for files by search term name/type",
+        #                 parameters=types.Schema(
+        #                     type=types.Type.OBJECT,
+        #                     properties={
+        #                         "search_term": types.Schema(
+        #                             type=types.Type.STRING,
+        #                             description="Filename or file type (e.g., csv, pdf, docx, John, Report, etc.).",
+        #                         ),
+        #                     },
+        #                     required=["search_term"],
+        #                 ),
+        #             ),
+        #         ]
+        #     ),
+        # ]
 
         # TODO: Fix and ensure file retrieval works with extended tools
 
@@ -353,18 +362,13 @@ class AudioLoop:
         return True
 
     def strip_code_blocks(self, text):
-        """
-        Removes Markdown-style code blocks from the given text.
-        This function searches for code blocks enclosed in triple backticks (```)
-        and removes the backticks and any optional language specifier, returning only
-        the code content inside the block.
-        Args:
-            text (str): The input string potentially containing Markdown code blocks.
-        Returns:
-            str: The input string with code blocks stripped of their backticks and language specifiers.
-        """
-
-        return re.sub(r"```(?:[a-zA-Z]*\\n)?(.*?)```", r"\1", text, flags=re.DOTALL)
+        if not text:
+            return ""
+        # Remove opening triple backticks but keep optional language name
+        text = re.sub(r"```([a-zA-Z]*)\n", r"\1\n", text)
+        # Remove any other triple backticks
+        text = text.replace("```", "")
+        return text
 
     async def send_text(self):
         """
